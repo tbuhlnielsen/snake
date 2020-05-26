@@ -8,32 +8,43 @@ from utilities import *
 # ------------------------------------------------------------------------------
 
 class Sprite_square:
-    """Represents either a piece of a Snake or an Apple. Mainly used to
-    simplify access to the location of a Snake's head, and to simplify the
-    code for draw() in Snake and Apple."""
+    """Represents a square in the grid that is occupied by either a piece
+    of a Snake or an Apple; both have (x, y) coordinates and are drawn as
+    a dark-coloured outer square behind a slightly smaller light square.
+
+    x and y represent the tile location of a Sprite_square; to get the pixel
+    location we use pixel(), which is defined in utilities.py."""
 
     def __init__(self, x, y):
-        """(x, y) is the tile location of a Sprite_square; to get the pixel
-        location, scale by TILE_SIZE."""
         self.x = x
         self.y = y
 
     def is_on_screen(self):
-        # On screen horizontally?
+        """Used to end the game if a Snake goes off the screen."""
         if pixel(self.x) < 0 or WIDTH - TILE_SIZE < pixel(self.x):
             return False
 
-        # On screen vertically?
         if pixel(self.y) < 0 or HEIGHT - TILE_SIZE < pixel(self.y):
             return False
 
         return True
 
     def draw(self, surf, inner_color, outer_color):
-        """Draws a Sprite_square on the screen as a small square (with
-        inner_color) on top of a larger square (outer_color)."""
         pg.draw.rect(surf, outer_color, outer_rect(self))
         pg.draw.rect(surf, inner_color, inner_rect(self))
+
+def outer_rect(square):
+    """Returns a pygame Rect the size of a tile in the grid."""
+    x = pixel(square.x)
+    y = pixel(square.y)
+    return pg.Rect(x, y, TILE_SIZE, TILE_SIZE)
+
+def inner_rect(square):
+    """Returns a pygame Rect slightly smaller than a tile in the grid."""
+    inner_x = pixel(square.x) + TILE_SIZE // 8
+    inner_y = pixel(square.y) + TILE_SIZE // 8
+    inner_size = int(TILE_SIZE * 0.75)
+    return pg.Rect(inner_x, inner_y, inner_size, inner_size)
 
 # ------------------------------------------------------------------------------
 
@@ -47,11 +58,9 @@ class Snake:
     The idea is to insert a new Sprite_square in front of the head every
     frame (where the meaning of "in front of" is determined by the
     direction the Snake is currently travelling in). This is done by
-    update().
-
-    Unless the head has just hit an Apple, the tail is removed from the
-    array to keep the length of the array constant. This is done by
-    update_tail()."""
+    update(). Then, unless the head has just hit an Apple, the tail is
+    removed from the array to keep the length of the array constant.
+    This is done by update_tail()."""
 
     def __init__(self, x0=3, y0=3):
         # Start with three pieces aligned horizontally.
@@ -63,9 +72,9 @@ class Snake:
 
     def body(self, initial=0):
         """Returns a list of (x, y) coordinates for each piece of a
-        Snake, starting from the piece at index initial.
-        Used by Apple.update() and hit_own_body()."""
-        return [(piece.x, piece.y) for piece in self.pieces[initial:]]
+        Snake, starting from the piece at index initial. Used by
+        Apple.update() and hit_own_body()."""
+        return self.pieces[initial:]
 
     def is_moving(self):
         return self.direction
@@ -110,12 +119,13 @@ class Apple(Sprite_square):
         self.locations = []
 
     def update(self, snake_body):
-        x, y = get_random_coords()
-        while (x, y) in self.locations or (x, y) in snake_body:
-            x, y = get_random_coords()
+        """Moves an Apple to a grid square it hasn't been in before."""
+        square = Sprite_square(*get_random_coords())
+        while square in self.locations or square in snake_body:
+            square.x, square.y = get_random_coords()
 
-        self.x, self.y = x, y
-        self.locations.append((self.x, self.y))
+        self.x, self.y = square.x, square.y
+        self.locations.append(square)
 
     def draw(self, surf):
         super().draw(surf, RED, DARK_RED)
@@ -131,8 +141,7 @@ def did_collide(snake, apple):
     return snake.head().x == apple.x and snake.head().y == apple.y
 
 def hit_own_body(snake):
-    head = (snake.head().x, snake.head().y)
     for square in snake.body(1):
-        if square == head:
+        if square == snake.head():
             return True
     return False

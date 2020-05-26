@@ -1,7 +1,7 @@
 import pygame as pg
 
 from settings import *
-from sprite import *
+from sprites import *
 from utilities import *
 
 # ------------------------------------------------------------------------------
@@ -10,16 +10,16 @@ class Display_window:
     """Controls the window that appears on the player's screen when
     they run main.py."""
 
-    def __init__(self, caption):
+    def __init__(self):
         self.screen = pg.display.set_mode(WINDOW_AREA)
-        self.open = True
-        pg.display.set_caption(caption)
-
-    def is_open(self):
-        return self.open
+        self.is_open = True
+        pg.display.set_caption(TITLE)
 
     def close(self):
-        self.open = False
+        self.is_open = False
+
+    def update(self):
+        pg.display.update()
 
 # ------------------------------------------------------------------------------
 
@@ -28,7 +28,7 @@ class Game:
     attributes, draw sprites on screen)."""
 
     def __init__(self):
-        self.display_window = Display_window("Snake")
+        self.display_window = Display_window()
         self.clock = pg.time.Clock()
 
     def reset(self):
@@ -69,17 +69,17 @@ class Game:
         surf.fill(BLACK)
         self.snake.draw(surf)
         self.apple.draw(surf)
-        draw_grid(surf)
+        # draw_grid(surf)
         draw_text(surf, "Score: " + str(self.score), y=20)
 
     def run(self):
         """The main loop."""
-        self.running = True # eventually will be set False in update()
+        self.running = True # Will eventually be set False in update().
         while self.running:
             self.events()
             self.update()
             self.draw(self.display_window.screen)
-            pg.display.update()
+            self.display_window.update()
             self.clock.tick(FPS)
 
     def quit(self):

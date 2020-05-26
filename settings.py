@@ -1,6 +1,7 @@
 # display window
 WINDOW_AREA = (WIDTH, HEIGHT) = (640, 480) # pixels
 FPS = 10
+TITLE = "Snake"
 
 # grid
 TILE_SIZE = 32

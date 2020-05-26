@@ -25,10 +25,9 @@ def main():
     assert WIDTH % TILE_SIZE == 0, "WIDTH must be a multiple of TILE_SIZE"
     assert HEIGHT % TILE_SIZE == 0, "HEIGHT must be a multiple of TILE_SIZE"
 
-    # start up a game
     snake = Game()
     # show_start_screen(snake) # TO DO
-    while snake.display_window.is_open():
+    while snake.display_window.is_open:
         snake.reset()
         snake.run()
         # show_end_screen(snake) # TO DO
